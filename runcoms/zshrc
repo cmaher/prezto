@@ -10,4 +10,168 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
+#zsh tweaks
+unsetopt AUTO_CD
+
+# Enable VI command line
+setopt VI
+setopt IGNORE_EOF
+export KEYTIMEOUT=1
+bindkey -M vicmd "q" push-line
+bindkey -M vicmd "n" vi-backward-char
+bindkey -M vicmd "e" vi-down-line-or-history
+bindkey -M vicmd "E" vi-join
+bindkey -M vicmd "o" vi-up-line-or-history
+bindkey -M vicmd "i" vi-forward-char
+bindkey -M vicmd "h" vi-insert
+bindkey -M vicmd "H" vi-insert-bol
+bindkey -M vicmd "k" vi-forward-word-end
+bindkey -M vicmd "K" vi-forward-blank-word-end
+
+#
+#it's globbering time!
+setopt NO_CASE_GLOB
+setopt NUMERIC_GLOB_SORT
+setopt EXTENDED_GLOB
+
+#automatically build the cd stack
+setopt AUTO_PUSHD
+setopt PUSHD_SILENT
+setopt PUSHD_TO_HOME
+
+#History stuff
+HISTFILE=~/.history
+SAVEHIST=10000
+HISTSIZE=10000
+setopt APPEND_HISTORY
+setopt INC_APPEND_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_IGNORE_SPACE
+setopt HIST_NO_STORE
+setopt HIST_VERIFY
+setopt EXTENDED_HISTORY
+setopt HIST_SAVE_NO_DUPS
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_FIND_NO_DUPS
+
+unsetopt SHARE_HISTORY
+unsetopt global_rcs
+
 # Customize to your needs...
+export PATH="/usr/local/opt/gems/bin:$HOME/bin:/usr/local/opt/gnu-sed/libexec/gnubin:/usr/local/opt/coreutils/libexec/gnubin:/usr/local/bin:$PATH"
+export MANPATH="/usr/local/opt/coreutils/libexec/gnuman:$MANPATH"
+
+export SUBLIME_PKG="/Users/cmaher/Library/Application Support/Sublime Text 3/Packages"
+export GDRIVE="$HOME/gdrive"
+export GIT_REMOTE="$GDRIVE/git"
+
+export EDITOR="vim"
+
+
+#dotfiles management
+export DOTFILES="$HOME/projects/dotfiles"
+alias ez="vim $HOME/.zshrc"
+alias ezl="vim $HOME/.zshrc.local"
+alias sz=" source $HOME/.zshrc"
+alias dfiles="$DOTFILES/setup.sh"
+
+#list open listen sockects
+alias listensocks="lsof -i -P | grep -i listen"
+killport () {
+  if [ -z $1 ]; then
+    echo USAGE: killport PORT_NUMBER
+    exit 1
+  fi
+  pid=$(lsof -i -P | grep -i listen | grep $1 | awk '{print $2}')
+  kill -9 $pid
+}
+
+#brew
+export CELLAR="$(brew --cellar)"
+
+#overwrite commands with aliases
+alias ls="ls --color=auto"
+alias curl="nocorrect noglob curl"
+
+#for git expansion
+__git_files () {
+	_wanted files expl 'local files' _files
+}
+
+# copy current git commit hash to clipboard
+function chash {
+  local HASH=$(git rev-parse HEAD)
+  echo $HASH | pbcopy
+  echo $HASH
+}
+
+#Load any local config
+if [ -e "$HOME/.zshrc.local" ]; then
+    source "$HOME/.zshrc.local"
+fi
+
+alias git="hub"
+alias g="hub"
+
+alias d="docker"
+alias dc="docker-compose"
+alias dkillall='docker kill $(docker ps -q)'
+alias drmall='docker rm $(docker ps -aq)'
+alias drmx="docker ps -a | grep Exited | cut -d ' ' -f 1 | xargs docker rm"
+
+# bash into running container
+function dbash {
+  docker exec -it $1 /bin/bash
+}
+
+# run image with bash as entrypoint
+function dibash {
+  docker run --rm -it --entrypoint=/bin/bash $@
+}
+
+# Remove all containers with name matching PATTERN
+function drmp {
+  local PATTERN=$1
+  docker ps --format '{{.Names}}' | grep $PATTERN | xargs docker rm -f
+}
+
+alias km='minikube'
+alias kc='kubectl'
+
+alias m='make'
+
+alias rmswp="rm .*.swp"
+alias unixtime="date +%s"
+
+alias jj='jq .'
+alias jsclean='npm cache clean; rm -r ~/.npm'
+alias plane='perl -lane'
+
+function npm-exec {
+  `npm bin`/$@
+}
+
+function new-git-remote {
+  git init --bare $GIT_REMOTE/$1.git
+}
+
+alias octave='octave --no-gui'
+
+export NVM_DIR="/Users/cmaher/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+# initiate pyenv
+which pyenv > /dev/null && eval "$(pyenv init -)"
+function pyv {
+  # create the virtual environment if it does not exist
+  if [[ ! -e ".pyvenv" ]]; then
+    python3 -m venv .pyvenv
+  fi
+  source .pyvenv/bin/activate
+}
+alias py="python3"
+
+alias lsh="zsh .local.sh"
+
