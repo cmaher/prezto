@@ -1,14 +1,15 @@
 #
 # Executes commands at the start of an interactive session.
-#
-# Authors:
-#   Sorin Ionescu <sorin.ionescu@gmail.com>
-#
 
 # Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
+
+unalias rm
+alias rm='nocorrect rm'
+unalias cp
+alias cp='nocorrect cp'
 
 #zsh tweaks
 unsetopt AUTO_CD
@@ -16,7 +17,6 @@ unsetopt AUTO_CD
 # Enable VI command line
 setopt VI
 setopt IGNORE_EOF
-export KEYTIMEOUT=1
 bindkey -M vicmd "q" push-line
 bindkey -M vicmd "n" vi-backward-char
 bindkey -M vicmd "e" vi-down-line-or-history
@@ -27,6 +27,8 @@ bindkey -M vicmd "h" vi-insert
 bindkey -M vicmd "H" vi-insert-bol
 bindkey -M vicmd "k" vi-forward-word-end
 bindkey -M vicmd "K" vi-forward-blank-word-end
+
+alias v='vim'
 
 #
 #it's globbering time!
@@ -60,21 +62,14 @@ unsetopt SHARE_HISTORY
 unsetopt global_rcs
 
 # Customize to your needs...
-export PATH="/usr/local/opt/gems/bin:$HOME/bin:/usr/local/opt/gnu-sed/libexec/gnubin:/usr/local/opt/coreutils/libexec/gnubin:/usr/local/bin:$PATH"
-export MANPATH="/usr/local/opt/coreutils/libexec/gnuman:$MANPATH"
-
-export SUBLIME_PKG="/Users/cmaher/Library/Application Support/Sublime Text 3/Packages"
-export GDRIVE="$HOME/gdrive"
-export GIT_REMOTE="$GDRIVE/git"
-
-export EDITOR="vim"
 
 
 #dotfiles management
-export DOTFILES="$HOME/projects/dotfiles"
 alias ez="vim $HOME/.zshrc"
 alias ezl="vim $HOME/.zshrc.local"
-alias sz=" source $HOME/.zshrc"
+alias eze="vim $HOME/.zshenv"
+alias ezel="vim $HOME/.zshenv.local"
+alias sz="source $HOME/.zshrc; source $HOME/.zshenv"
 alias dfiles="$DOTFILES/setup.sh"
 
 #list open listen sockects
@@ -87,9 +82,6 @@ killport () {
   pid=$(lsof -i -P | grep -i listen | grep $1 | awk '{print $2}')
   kill -9 $pid
 }
-
-#brew
-export CELLAR="$(brew --cellar)"
 
 #overwrite commands with aliases
 alias ls="ls --color=auto"
@@ -107,45 +99,136 @@ function chash {
   echo $HASH
 }
 
-#Load any local config
-if [ -e "$HOME/.zshrc.local" ]; then
-    source "$HOME/.zshrc.local"
-fi
-
 alias git="hub"
 alias g="hub"
+
+# bash into running container
+function dsh {
+  docker exec -it $1 sh
+}
+
+# run image with bash as entrypoint
+function dish {
+  docker run --rm -it --entrypoint=sh $@
+}
+
+# Remove all containers with name matching PATTERN
+function drmname {
+  local PATTERN=$1
+  docker ps --format '{{.Names}}' | grep $PATTERN | xargs docker rm -f
+}
+
+function drmp {
+  docker ps -a | grep $1 | cut -d ' ' -f 1 | xargs docker rm
+}
+
+function drmip {
+  docker images | grep $1 | awk '{print $3}' | tail -n +2 | xargs docker rmi
+}
 
 alias d="docker"
 alias dc="docker-compose"
 alias dkillall='docker kill $(docker ps -q)'
 alias drmall='docker rm $(docker ps -aq)'
-alias drmx="docker ps -a | grep Exited | cut -d ' ' -f 1 | xargs docker rm"
+alias drmx='drmp Exited'
 
-# bash into running container
-function dbash {
-  docker exec -it $1 /bin/bash
+
+function mkubed() {
+  eval $(minikube docker-env)
 }
 
-# run image with bash as entrypoint
-function dibash {
-  docker run --rm -it --entrypoint=/bin/bash $@
+alias k='kubectl'
+alias kg='kubectl get'
+alias kgp='kubectl get pods'
+alias kgs='kubectl get services'
+alias kgn='kubectl get namespaces'
+alias kc='kubectl create'
+alias kcf='kubectl create -f'
+alias kd='kubectl delete'
+alias kdp='kubectl delete pod'
+alias kdf='kubectl delete -f'
+alias kdn='kubectl delete namespace'
+alias kl='kubectl logs -f'
+alias ks='kubectl describe'
+alias ksp='kubectl describe pod'
+alias kss='kubectl describe service'
+alias ksn='kubectl describe namespace'
+alias ko='kubectl config'
+alias kou='kubectl config use-context'
+alias mkube='minikube'
+alias mkube-mem='VBoxManage modifyvm minikube --memory 8192 --cpus 4'
+alias mkube-update='mkube delete && mkube start && mkube stop && mkube-mem && mkube start'
+
+function k8s-find-pod() {
+  if [ -n "$2" ]; then
+    namespace="-n$2"
+  fi
+  kubectl get pod $namespace | grep $1 | cut -d' ' -f 1
 }
 
-# Remove all containers with name matching PATTERN
-function drmp {
-  local PATTERN=$1
-  docker ps --format '{{.Names}}' | grep $PATTERN | xargs docker rm -f
+function ksh() {
+  local pattern=$1
+  local -a cmd container namespace
+  zparseopts -E x:=cmd c:=container n:=namespace
+  local pod=`k8s-find-pod $pattern ${namespace[2]}`
+  local exec_cmd=${cmd[2]:-bash}
+  kubectl exec -it $namespace $container $pod $exec_cmd
 }
 
-alias km='minikube'
-alias kc='kubectl'
+function kpf() {
+  pattern=$1
+  port=$2
+  pod=`k8s-find-pod $pattern`
+  kubectl port-forward $pod $port:$port
+}
+
+function kdns() {
+  kubectl delete pod -nkube-system $(k8s-find-pod kube-dns kube-system)
+}
+
+function mkservice() {
+  service=$1
+  ip=`mkube ip`
+  port=`kubectl get service $service \
+    | grep "$service" \
+    | tr -s ' ' \
+    | cut -d ' ' -f 4 \
+    | sed 's~.*:\(.*\)/.*~\1~'`
+  if [ -z "$port" ]; then
+    echo Service not found
+    return
+  fi
+
+  url=http://${ip}:${port}
+
+  if [ -n "${@[(r)--url]}" ]; then
+    echo $url
+  else
+    open $url
+  fi
+}
 
 alias m='make'
+alias gr='gradle'
 
 alias rmswp="rm .*.swp"
 alias unixtime="date +%s"
 
-alias jj='jq .'
+# jq from str
+function jqs {
+	args=($@)
+	str=${args[-1]}
+	args[-1]=()
+	jq $args <<< "$str"
+}
+
+# jq on a string with wrong quotes
+function jqq {
+  args=($@)
+  args[-1]=$(sed "s/'/\"/g" <<< "${args[-1]}")
+  jqs $args
+}
+
 alias jsclean='npm cache clean; rm -r ~/.npm'
 alias plane='perl -lane'
 
@@ -159,11 +242,7 @@ function new-git-remote {
 
 alias octave='octave --no-gui'
 
-export NVM_DIR="/Users/cmaher/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-
 # initiate pyenv
-which pyenv > /dev/null && eval "$(pyenv init -)"
 function pyv {
   # create the virtual environment if it does not exist
   if [[ ! -e ".pyvenv" ]]; then
@@ -174,4 +253,30 @@ function pyv {
 alias py="python3"
 
 alias lsh="zsh .local.sh"
+alias l="lsh"
+alias l.="source .local.sh"
+function lsh-new() {
+  if [ -e .local.sh ]; then
+    echo .local.sh already exists
+  else
+    cp ~/.zprezto/templates/local.sh.templ ./.local.sh
+  fi
+}
 
+function loop() {
+  while true; do
+    $@
+    sleep 1
+  done
+}
+
+alias cdt="cd $HOME/tmp"
+alias cdd='cd $DOWNLOADS'
+
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+# LAST OF ALL
+#Load any local config
+if [ -e "$HOME/.zshrc.local" ]; then
+    source "$HOME/.zshrc.local"
+fi
