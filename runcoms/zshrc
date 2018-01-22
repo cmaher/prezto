@@ -137,33 +137,53 @@ function mkubed() {
   eval $(minikube docker-env)
 }
 
+alias tf='terraform'
 alias k='kubectl'
 alias kg='kubectl get'
 alias kgp='kubectl get pods'
 alias kgs='kubectl get services'
 alias kgn='kubectl get namespaces'
 alias kc='kubectl create'
+alias kcn='kubectl create namespace'
 alias kcf='kubectl create -f'
 alias kd='kubectl delete'
 alias kdp='kubectl delete pod'
-alias kdf='kubectl delete -f'
+alias kds='kubectl delete service'
 alias kdn='kubectl delete namespace'
+alias kdalln="kubectl get namespace | tail -n+2 | cut -d' ' -f 1 | grep -v 'default\|kube-public\|kube-system\|scratch' | xargs kubectl delete namespace"
+alias kdf='kubectl delete -f'
+alias kdforce='kubectl delete --grace-period=0 --force'
 alias kl='kubectl logs -f'
 alias ks='kubectl describe'
 alias ksp='kubectl describe pod'
 alias kss='kubectl describe service'
 alias ksn='kubectl describe namespace'
+alias koc='kubectl config view | grep current-context | cut -d" " -f2'
 alias ko='kubectl config'
 alias kou='kubectl config use-context'
+alias kous='kubectl config use-context scratch'
+alias kon='kubectl config set-context $(koc) --namespace'
+alias kons='kubectl config set-context scratch --namespace scratch'
 alias mkube='minikube'
 alias mkube-mem='VBoxManage modifyvm minikube --memory 8192 --cpus 4'
 alias mkube-update='mkube delete && mkube start && mkube stop && mkube-mem && mkube start'
+alias hic='helm install charts'
+alias kbusy='kubectl create -f ${HOME}/opt/k8s/busybox.yaml'
+function hdall() {
+  for r in `helm ls --short`; do
+    helm delete --purge $r
+  done
+}
 
 function k8s-find-pod() {
   if [ -n "$2" ]; then
     namespace="-n$2"
   fi
   kubectl get pod $namespace | grep $1 | cut -d' ' -f 1
+}
+
+function k8s-copy-secret() {
+  kubectl get rs,secrets -o json --namespace default | jq ".items[].metadata.namespace = \"$1\"" | kubectl create -f  -
 }
 
 function ksh() {
@@ -184,6 +204,12 @@ function kpf() {
 
 function kdns() {
   kubectl delete pod -nkube-system $(k8s-find-pod kube-dns kube-system)
+}
+
+function aws-delete-image {
+  local snapshot_id=$(aws ec2 describe-images --image-ids=$1 | jq .Images[0].BlockDeviceMappings[0].Ebs.SnapshotId)
+  aws ec2 deregister-image --image-id=$1
+  aws ec2 delete-snapshot --snapshot-id=${snapshot_id}
 }
 
 function mkservice() {
@@ -268,6 +294,16 @@ function loop() {
     $@
     sleep 1
   done
+}
+
+function qwerty() {
+  mv ~/.vimrc ~/vimrc.bak
+  mv ~/.ideavimrc ~/ideavimrc.bak
+}
+
+function workman() {
+  mv ~/vimrc.bak ~/.vimrc
+  mv ~/ideavimrc.bak ~/.ideavimrc
 }
 
 alias cdt="cd $HOME/tmp"
