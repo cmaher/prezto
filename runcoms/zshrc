@@ -153,6 +153,7 @@ alias kdn='kubectl delete namespace'
 alias kdalln="kubectl get namespace | tail -n+2 | cut -d' ' -f 1 | grep -v 'default\|kube-public\|kube-system\|scratch' | xargs kubectl delete namespace"
 alias kdf='kubectl delete -f'
 alias kdforce='kubectl delete --grace-period=0 --force'
+alias kdforceterm="kubectl get pods --all-namespaces | awk '/Terminating/ { print \$1,\$2 }' | xargs -L 1 kubectl delete pods --force --grace-period=0 -n"
 alias kl='kubectl logs -f'
 alias ks='kubectl describe'
 alias ksp='kubectl describe pod'
