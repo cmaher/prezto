@@ -10,6 +10,7 @@ unalias rm
 alias rm='nocorrect rm'
 unalias cp
 alias cp='nocorrect cp'
+alias ag='nocorrect ag'
 
 #zsh tweaks
 unsetopt AUTO_CD
@@ -99,8 +100,7 @@ function chash {
   echo $HASH
 }
 
-alias git="hub"
-alias g="hub"
+alias g="git"
 
 # bash into running container
 function dsh {
@@ -277,7 +277,11 @@ function pyv {
   fi
   source .pyvenv/bin/activate
 }
-alias py="python3"
+
+alias python2="python"
+alias pip2="pip"
+alias python="python3"
+alias pip="pip3"
 
 alias lsh="zsh .local.sh"
 alias l="lsh"
@@ -310,10 +314,14 @@ function workman() {
 alias cdt="cd $HOME/tmp"
 alias cdd='cd $DOWNLOADS'
 
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+funcion nvmenv() {
+  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+}
+alias ng='nocorrect ng'
 
 # LAST OF ALL
 #Load any local config
 if [ -e "$HOME/.zshrc.local" ]; then
     source "$HOME/.zshrc.local"
 fi
+
