@@ -150,7 +150,7 @@ alias kd='kubectl delete'
 alias kdp='kubectl delete pod'
 alias kds='kubectl delete service'
 alias kdn='kubectl delete namespace'
-alias kdalln="kubectl get namespace | tail -n+2 | cut -d' ' -f 1 | grep -v 'default\|kube-public\|kube-system\|scratch' | xargs kubectl delete namespace"
+alias kdalln="kubectl get namespace --context minikube | tail -n+2 | cut -d' ' -f 1 | grep -v 'default\|kube-public\|kube-system\|scratch' | xargs kubectl delete namespace --contextm minikube"
 alias kdf='kubectl delete -f'
 alias kdforce='kubectl delete --grace-period=0 --force'
 alias kdforceterm="kubectl get pods --all-namespaces | awk '/Terminating/ { print \$1,\$2 }' | xargs -L 1 kubectl delete pods --force --grace-period=0 -n"
@@ -171,8 +171,8 @@ alias mkube-update='mkube delete && mkube start && mkube stop && mkube-mem && mk
 alias hic='helm install charts'
 alias kbusy='kubectl create -f ${HOME}/opt/k8s/busybox.yaml'
 function hdall() {
-  for r in `helm ls --short`; do
-    helm delete --purge $r
+  for r in `helm ls --short --kube-context minikube`; do
+    helm delete --purge --kube-context minikube $r
   done
 }
 
