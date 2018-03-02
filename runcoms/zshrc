@@ -259,10 +259,6 @@ function jqq {
 alias jsclean='npm cache clean; rm -r ~/.npm'
 alias plane='perl -lane'
 
-function npm-exec {
-  `npm bin`/$@
-}
-
 function new-git-remote {
   git init --bare $GIT_REMOTE/$1.git
 }
