@@ -71,7 +71,6 @@ alias ezl="vim $HOME/.zshrc.local"
 alias eze="vim $HOME/.zshenv"
 alias ezel="vim $HOME/.zshenv.local"
 alias sz="source $HOME/.zshrc; source $HOME/.zshenv"
-alias dfiles="$DOTFILES/setup.sh"
 
 #list open listen sockects
 alias listensocks="lsof -i -P | grep -i listen"
