@@ -140,6 +140,7 @@ alias tf='terraform'
 alias k='kubectl'
 alias kg='kubectl get'
 alias kgp='kubectl get pods'
+alias kgpan='kubectl get pods --all-namespaces'
 alias kgs='kubectl get services'
 alias kgn='kubectl get namespaces'
 alias kc='kubectl create'
@@ -149,7 +150,6 @@ alias kd='kubectl delete'
 alias kdp='kubectl delete pod'
 alias kds='kubectl delete service'
 alias kdn='kubectl delete namespace'
-alias kdalln="kubectl get namespace --context minikube | tail -n+2 | cut -d' ' -f 1 | grep -v 'default\|kube-public\|kube-system\|scratch' | xargs kubectl delete namespace --contextm minikube"
 alias kdf='kubectl delete -f'
 alias kdforce='kubectl delete --grace-period=0 --force'
 alias kdforceterm="kubectl get pods --all-namespaces | awk '/Terminating/ { print \$1,\$2 }' | xargs -L 1 kubectl delete pods --force --grace-period=0 -n"
@@ -161,18 +161,36 @@ alias ksn='kubectl describe namespace'
 alias koc='kubectl config view | grep current-context | cut -d" " -f2'
 alias ko='kubectl config'
 alias kou='kubectl config use-context'
-alias kous='kubectl config use-context scratch'
+alias koum='kubectl config use-context minikube'
 alias kon='kubectl config set-context $(koc) --namespace'
-alias kons='kubectl config set-context scratch --namespace scratch'
+alias konm='kubectl config set-context minikube --namespace minikbue'
 alias mkube='minikube'
-alias mkube-mem='VBoxManage modifyvm minikube --memory 8192 --cpus 4'
-alias mkube-update='mkube delete && mkube start && mkube stop && mkube-mem && mkube start'
 alias hic='helm install charts'
 alias kbusy='kubectl create -f ${HOME}/opt/k8s/busybox.yaml'
+alias cdko='cd $HOME/.kube/config'
+
 function hdall() {
-  for r in `helm ls --short --kube-context minikube`; do
-    helm delete --purge --kube-context minikube $r
+  local context=$1
+  if [[ -z "$context" ]]; then
+    echo "usage: hdall CONTEXT"
+    return 1
+  fi
+  for r in `helm ls --short --kube-context $context`; do
+    helm delete --purge --kube-context $context $r
   done
+}
+
+function kdalln() {
+  local context=$1
+  if [[ -z "$context" ]]; then
+    echo "usage: hdall CONTEXT"
+    return 1
+  fi
+  kubectl get namespace --context $context \
+    | tail -n+2 \
+    | cut -d' ' -f 1 \
+    | grep -v 'default\|kube-public\|kube-system' \
+    | xargs kubectl delete namespace --context $context
 }
 
 function k8s-find-pod() {
@@ -258,6 +276,15 @@ function jqq {
 alias jsclean='npm cache clean; rm -r ~/.npm'
 alias plane='perl -lane'
 
+function awkc {
+  fields=()
+  for f in $@; do
+    fields+=("\$$f")
+    fields+=('" "')
+  done
+  awk "{ print $fields }"
+}
+
 function new-git-remote {
   git init --bare $GIT_REMOTE/$1.git
 }
@@ -273,10 +300,7 @@ function pyv {
   source .pyvenv/bin/activate
 }
 
-alias python2="python"
-alias pip2="pip"
-alias python="python3"
-alias pip="pip3"
+alias simplehttpserver='python3 -m http.server'
 
 alias lsh="zsh .local.sh"
 alias l="lsh"
@@ -308,6 +332,10 @@ function workman() {
 
 alias cdt="cd $HOME/tmp"
 alias cdd='cd $DOWNLOADS'
+
+function catscript() {
+  cat $(which $1)
+}
 
 funcion nvmenv() {
   [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
