@@ -342,6 +342,14 @@ funcion nvmenv() {
 }
 alias ng='nocorrect ng'
 
+function dotimes() {
+  times=$1
+  shift
+  for i in $(seq 1 $times); do
+    $@
+  done
+}
+
 # LAST OF ALL
 #Load any local config
 if [ -e "$HOME/.zshrc.local" ]; then
