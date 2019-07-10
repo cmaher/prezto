@@ -1,0 +1,109 @@
+" enable some stuff
+set nocompatible
+
+let mapleader = "\<space>"
+
+" turn on proper file recognition
+filetype on
+filetype plugin on
+filetype plugin indent on
+
+" trim trailing whitespace
+autocmd BufWritePre * :%s/\s\+$//e
+
+" turn on syntax for the filetype
+syntax on
+syntax enable
+
+" display the command that is being entered
+set showcmd
+
+" auto-indenting for convenience
+set autoindent
+
+" expanding tab to spaces
+set expandtab
+set smarttab
+set tabstop=2
+set shiftwidth=2
+
+" line numbers
+set number
+set ru
+
+" make searching easier on the case treatement
+set ignorecase
+set smartcase
+
+" incremental search
+set incsearch
+
+" highlight all search results
+set hlsearch
+
+set nohidden
+
+" type jk instead of escape
+" inoremap jk <Esc>
+
+"keep at least 5 lines below
+set scrolloff=5
+
+" folding based on the language used -- za to fold
+set foldmethod=syntax
+set foldlevelstart=20
+
+" clear search term, thus clearing highlighting
+nnoremap <silent> <C-H> :let @/="" <CR>
+nnoremap <silent> <C-A> :Ack <cword> <CR>
+
+" disable word-wrap
+set nowrap
+
+" copy/paste to clipboard
+nnoremap <leader>a ggVG
+nnoremap <leader>p "+p
+vnoremap <leader>p "+p
+vnoremap <leader>y "+y
+vnoremap <leader>d "+d
+
+" make backspace work normally
+set backspace=2
+
+" CtrlP in current directory
+let g:ctrlp_working_path_mode = 'a'
+
+" local vimrc
+if filereadable(".vimrc.local")
+    so .vimrc.local
+endif
+
+" remap directions
+noremap n h
+noremap N H
+noremap e j
+noremap E J
+noremap o k
+noremap O <nop>
+noremap i l
+noremap I L
+
+" h -> (h)ack [insert]
+noremap h i
+noremap H I
+
+" j -> (j)ump [next]
+noremap j n
+noremap J N
+
+" k -> brea(k) [end]
+noremap k e
+noremap K E
+
+" l -> (l)ine [open line]
+noremap l o
+noremap L O
+
+" disable ex mode
+map q: <nop>
+nnoremap Q <nop>

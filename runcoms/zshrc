@@ -6,6 +6,8 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
+source ~/.zshenv
+
 unalias rm
 alias rm='nocorrect rm'
 unalias cp
@@ -95,7 +97,7 @@ __git_files () {
 # copy current git commit hash to clipboard
 function chash {
   local HASH=$(git rev-parse HEAD)
-  echo $HASH | pbcopy
+  echo -n $HASH | pbcopy
   echo $HASH
 }
 
@@ -137,12 +139,15 @@ function mkubed() {
 }
 
 alias tf='terraform'
+alias tg='terragrunt'
 alias k='kubectl'
 alias kg='kubectl get'
 alias kgp='kubectl get pods'
 alias kgpan='kubectl get pods --all-namespaces'
 alias kgs='kubectl get services'
 alias kgn='kubectl get namespaces'
+alias kgj='kubectl get jobs'
+alias kgd='kubectl get deployments'
 alias kc='kubectl create'
 alias kcn='kubectl create namespace'
 alias kcf='kubectl create -f'
@@ -150,6 +155,7 @@ alias kd='kubectl delete'
 alias kdp='kubectl delete pod'
 alias kds='kubectl delete service'
 alias kdn='kubectl delete namespace'
+alias kdj='kubectl delete job'
 alias kdf='kubectl delete -f'
 alias kdforce='kubectl delete --grace-period=0 --force'
 alias kdforceterm="kubectl get pods --all-namespaces | awk '/Terminating/ { print \$1,\$2 }' | xargs -L 1 kubectl delete pods --force --grace-period=0 -n"
@@ -168,6 +174,11 @@ alias mkube='minikube'
 alias hic='helm install charts'
 alias kbusy='kubectl create -f ${HOME}/opt/k8s/busybox.yaml'
 alias cdko='cd $HOME/.kube/config'
+alias -g _kan='--all-namespaces'
+
+function kscale {
+  kubectl scale deployment --replicas=$2 $1
+}
 
 function hdall() {
   local context=$1
@@ -253,7 +264,13 @@ function mkservice() {
 }
 
 alias m='make'
-alias gr='gradle'
+function gr() {
+  if [ -f gradlew ]; then
+    ./gradlew $@
+  else
+    gradle $@
+  fi
+}
 
 alias rmswp="rm .*.swp"
 alias unixtime="date +%s"
@@ -350,9 +367,14 @@ function dotimes() {
   done
 }
 
+function roll() {
+  echo $((1 + RANDOM % $1))
+}
+
 # LAST OF ALL
 #Load any local config
 if [ -e "$HOME/.zshrc.local" ]; then
     source "$HOME/.zshrc.local"
 fi
 
+alias sshnh="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"

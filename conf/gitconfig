@@ -1,0 +1,66 @@
+[user]
+	name = Christian Maher
+	email = maher.cs@gmail.com
+[core]
+	excludesfile = ~/.gitignore.global
+	precomposeunicode = true
+	quotepath = false
+[alias]
+	co = checkout
+  c = commit
+  ca = commit --amend
+  sh = stash
+  shp = stash pop
+	stat = status
+  sm = submodule
+  sminit = submodule update --init --recursive
+  smpull = submodule update --remote --merge
+  spull = "!git stash && git pull && git stash pop"
+  sp = spull
+  rbc = rebase --continue
+  rba = rebase --abort
+  curbranch = rev-parse --abbrev-ref HEAD
+  fpush = push --force-with-lease
+  rewrite = "! f () { git rebase -i HEAD~$1; }; f"
+  srewrite = "! f () { git stash; git rewrite $1; git stash pop; }; f"
+  upstream = "! f () { \
+    UP=${1:-origin/$(git curbranch)}; \
+    git branch --set-upstream-to $UP; \
+    }; f"
+  clone-head = clone --depth 1
+  cap-mv = "! f() { git mv $1 ${1}_bak; git mv ${1}_bak $2; }; f"
+  rebranch = "! f() { \
+    BRANCH=$(git curbranch); \
+    git upstream; \
+    git pull; \
+    git checkout $1 && \
+      git pull && \
+      git checkout $BRANCH && \
+      git rebase -i $1; \
+    }; f"
+  init-gdrive = "! f() { \
+    PROJECT=$(basename $(pwd)); \
+    cd $GIT_REMOTE; \
+    git init --bare $PROJECT.git; \
+    cd -; \
+    git init; \
+    git remote add origin $GIT_REMOTE/$PROJECT.git; \
+    }; f"
+  add-tag = "! f() { git tag -a $1 -m 'Release $1'; git push origin $1; }; f"
+  rm-tag = "! f() { git tag -d $1; git push --delete origin $1; }; f"
+  pr = pull-request
+  ps = push
+  pl = pull
+  pr-default = remote set-head origin
+	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --
+[push]
+	default = current
+[pull]
+	rebase = true
+[merge]
+	tool = vimdiff
+[rerere]
+	enabled = true
+[filter "media"]
+	clean = git-media-clean %f
+	smudge = git-media-smudge %f

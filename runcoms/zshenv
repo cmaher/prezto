@@ -18,6 +18,7 @@ export GDRIVE="$HOME/gdrive"
 export GIT_REMOTE="$GDRIVE/git"
 export EDITOR="nvim"
 export GIT_EDITOR="$EDITOR"
+export GPG_TTY=$(tty)
 
 export NVM_DIR="$HOME/.nvm"
 which pyenv > /dev/null && eval "$(pyenv init -)"

@@ -1,0 +1,36 @@
+set ignorecase
+set smartcase
+set incsearch
+set hlsearch
+set number
+set surround
+
+" directions
+" left
+noremap n h
+noremap N H
+" down
+noremap e j
+noremap E J
+" up
+noremap o k
+noremap O <nop>
+" right
+noremap i l
+noremap I L
+
+" h -> (h)ack [insert]
+noremap h i
+noremap H I
+
+" j -> (j)ump [next]
+noremap j n
+noremap J N
+
+" k -> brea(k) [end]
+noremap k e
+noremap K E
+
+" l -> (l)ine [open line]
+noremap l o
+noremap L O
