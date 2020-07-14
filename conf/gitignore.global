@@ -24,6 +24,8 @@
 .idea/
 *.iml
 .pyvenv/
+.pyv/
+pyv/
 .local.sh
 jest/
 .#*
@@ -32,4 +34,4 @@ jest/
 *.iws
 .gradle/
 lscratch*
-
+*.iml

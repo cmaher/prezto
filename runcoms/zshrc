@@ -130,7 +130,7 @@ function drmip {
 alias d="docker"
 alias dc="docker-compose"
 alias dkillall='docker kill $(docker ps -q)'
-alias drmall='docker rm $(docker ps -aq)'
+alias drmall='docker rm -f $(docker ps -aq)'
 alias drmx='drmp Exited'
 
 
@@ -228,6 +228,7 @@ function kpf() {
   pattern=$1
   port=$2
   pod=`k8s-find-pod $pattern`
+  echo $pod
   kubectl port-forward $pod $port:$port
 }
 
@@ -291,7 +292,7 @@ function jqq {
 }
 
 alias jsclean='npm cache clean; rm -r ~/.npm'
-alias plane='perl -lane'
+alias psed='perl -pe'
 
 function awkc {
   fields=()
@@ -310,11 +311,17 @@ alias octave='octave --no-gui'
 
 # initiate pyenv
 function pyv {
-  # create the virtual environment if it does not exist
-  if [[ ! -e ".pyvenv" ]]; then
-    python3 -m venv .pyvenv
+  #export PTHYONPATH=$(pwd)
+  export PYTHONSTARTUP=$(pwd)/$PYDEVREPL
+  if [[ $# -eq 0 ]]; then
+    # create the virtual environment if it does not exist
+    if [[ ! -e "pyv" ]]; then
+      python3 -m venv pyv
+    fi
+    source pyv/bin/activate
+  else
+    pyv/bin/$1 ${@:2}
   fi
-  source .pyvenv/bin/activate
 }
 
 alias simplehttpserver='python3 -m http.server'
@@ -371,6 +378,16 @@ function roll() {
   echo $((1 + RANDOM % $1))
 }
 
+function mv() {
+  if [ "$#" -ne 1 ] || [ ! -e "$1" ]; then
+    command mv "$@"
+    return
+  fi
+
+  read -ei "$1" newfilename
+  command mv -v -- "$1" "$newfilename"
+}
+
 # LAST OF ALL
 #Load any local config
 if [ -e "$HOME/.zshrc.local" ]; then
@@ -378,3 +395,4 @@ if [ -e "$HOME/.zshrc.local" ]; then
 fi
 
 alias sshnh="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+alias scpnh="scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"

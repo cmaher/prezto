@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 
-rename -lf 's/(.*)/~\/.$1/' conf/*
+for f in `ls conf`; do
+  ln -sf $(pwd)/conf/$f $HOME/.$f
+done
