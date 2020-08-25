@@ -31,8 +31,6 @@
   cap-mv = "! f() { git mv $1 ${1}_bak; git mv ${1}_bak $2; }; f"
   rebranch = "! f() { \
     BRANCH=$(git curbranch); \
-    git upstream; \
-    git pull; \
     git checkout $1 && \
       git pull && \
       git checkout $BRANCH && \
@@ -64,3 +62,7 @@
 [filter "media"]
 	clean = git-media-clean %f
 	smudge = git-media-smudge %f
+[hub]
+	protocol = ssh
+[url "git@github.com:"]
+	insteadOf = https://github.com/

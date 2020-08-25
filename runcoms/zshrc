@@ -20,6 +20,9 @@ unsetopt AUTO_CD
 # Enable VI command line
 setopt VI
 setopt IGNORE_EOF
+# these two lines ensure that output not terminiating in a newline is shown
+setopt PROMPT_CR
+setopt PROMPT_SP
 bindkey -M vicmd "q" push-line
 bindkey -M vicmd "n" vi-backward-char
 bindkey -M vicmd "e" vi-down-line-or-history
@@ -139,7 +142,10 @@ function mkubed() {
 }
 
 alias tf='terraform'
-alias tg='terragrunt'
+function tg() {
+  terragrunt $@
+}
+
 alias k='kubectl'
 alias kg='kubectl get'
 alias kgp='kubectl get pods'
@@ -164,7 +170,6 @@ alias ks='kubectl describe'
 alias ksp='kubectl describe pod'
 alias kss='kubectl describe service'
 alias ksn='kubectl describe namespace'
-alias koc='kubectl config view | grep current-context | cut -d" " -f2'
 alias ko='kubectl config'
 alias kou='kubectl config use-context'
 alias koum='kubectl config use-context minikube'
@@ -175,6 +180,10 @@ alias hic='helm install charts'
 alias kbusy='kubectl create -f ${HOME}/opt/k8s/busybox.yaml'
 alias cdko='cd $HOME/.kube/config'
 alias -g _kan='--all-namespaces'
+
+function koc {
+  kubectl config view | grep current-context | cut -d" " -f2
+}
 
 function kscale {
   kubectl scale deployment --replicas=$2 $1
@@ -208,7 +217,7 @@ function k8s-find-pod() {
   if [ -n "$2" ]; then
     namespace="-n$2"
   fi
-  kubectl get pod $namespace | grep $1 | cut -d' ' -f 1
+  kubectl get pod $namespace | grep $1 | grep -v 'Terminating' | cut -d' ' -f 1
 }
 
 function k8s-copy-secret() {
